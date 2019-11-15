@@ -1,1 +1,4 @@
 doc/
+pages/
+.jekyll-cache/
+_site/
