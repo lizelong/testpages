@@ -63,7 +63,7 @@ title: 有点意思~
             {% if page == paginator.page %}
               <em>{{ page }}</em>
             {% elsif page == 1 %}
-              <a class="btn" href="/">{{ page }}</a>
+              <a class="btn" href="{{site.baseurl}}">{{ page }}</a>
             {% else %}
               <a class="btn" href="{{ site.paginate_path | prepend: site.baseurl | replace: '//', '/' | replace: ':num', page }}">{{ page }}</a>
             {% endif %}
