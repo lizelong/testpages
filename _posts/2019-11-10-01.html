@@ -1,0 +1,107 @@
+---
+layout: post
+category: blog/network
+title: 网站由http升级为https
+author: 木子z
+zhaiyao: Google很早就已经开始大力推广https，甚至明说相同条件下，https网站的排名会更靠前。但因为升级至https存在一定的技术门槛，而且成本也比较高昂(证书要花钱)，所以当时响应支持的并不是很多
+pic: contact-bg.jpg
+---
+
+
+为什么要升级？
+Google很早就已经开始大力推广https，甚至明说相同条件下，https网站的排名会更靠前。但因为升级至https存在一定的技术门槛，而且成本也比较高昂(证书要花钱)，所以当时响应支持的并不是很多。
+
+但是今天，在各大企业的大力推广下，https已经非常普及了，目前Top 100的网站中已经有90%的网站默认使用了https，而且 Let’s Encrypt 也在给全球用户提供永久免费的证书(虽然3个月需要更新一次)，所以唯一的限制就是技术门槛了，你就不得不学习一下该如何升级你的网站了！
+
+升级流程
+升级https，我们可以分为3步：购买证书、安装证书、设置跳转，下面来大致看下这3步的流程，最后会有详细步骤
+
+1. 购买证书
+证书类型分为DV、OV、EV这三种，这三种有什么区别？
+
+DV（域名型SSL）：个人站点、iOS应用分发站点、登陆等单纯https加密需求的链接；
+OV（企业型SSL）：企业官网；
+EV（增强型SSL）：对安全需求更强的企业官网、电商、互联网金融网站；
+Let’s Encrypt提供的SSL证书支持单域名、多域名、通配符等类型，而且用的人也比较多，关键是免费，所以个人站长或小公司多半会选择他！虽然免费的有效期只有3个月(过期之前可以免费更新)，但是我们可以通过Linux的计划任务让它自动更新就好啦！
+
+2. 安装证书
+证书购买完成(或者生成)后，你就可以得到对应域名的证书文件。根据你Web服务器的不同种类一般证书也会分为多种，请根据自己的实际情况下载安装，一般的常见的Web服务器分为Nginx、Apache、Tomcat、IIS 6、IIS 7/8这几种。所谓的安装其实就是将证书放到你的服务器，再改改服务器的配置。
+
+3. 设置跳转
+经过上面的步骤，你的网站就能以 https://domainhost 的形式访问了，但是这个时候http和https同时都能够访问，我们可以修改服务器的配置将http请求通过301 redirect到https上去。
+
+安装Let’s Encrypt的证书
+根据上面的步骤，我们可以知道，升级https其实并不困难，很多步骤都是固定的。而且网络上已经有很多封装好的脚本可以直接使用，这里给大家推荐一个 acme.sh ， 项目文档
+
+系统： CentOS 7.3 
+服务器： Apache 2.4.27
+
+按照上面的项目文档，就可以搞定啦，我这里总结下基本的步骤，和我安装过程中踩到的坑：
+
+1. 安装 acme.sh
+# 进到~目录执行
+$ curl  https://get.acme.sh | sh
+
+# 给脚本创建一个别名
+$ alias acme.sh=~/.acme.sh/acme.sh
+2. 生成证书
+# 我的域名是： lizeong.com 
+$ acme.sh  --issue  -d lizelong.com -d www.lizelong.com  --apache
+3. copy/安装 证书
+# 我将证书放到了Apache的安装目录里面的cert，所以需要新建文件夹
+$ mkdir /usr/local/apache2/cert
+
+# 将证书安装到指定目录
+$ acme.sh --install-cert -d lizelong.com \
+-d www.lizelong.com \
+--cert-file      /usr/local/apache2/cert/cert.crt  \
+--key-file       /usr/local/apache2/cert/key.key  \
+--fullchain-file /usr/local/apache2/cert/fullchain.pem \
+--reloadcmd     "apachectl restart"
+注意：
+1. 路径要给对 
+2. 最后的--reloadcmd是你服务器的重启命令。 
+3. 以上步骤的详细解释请看项目文档
+
+4. 修改配置
+1. 打开 Apache 安装目录下的 conf 目录中的 httpd.conf 文件，找到以下内容并去掉“#”：
+#LoadModule ssl_module modules/mod_ssl.so
+#Include conf/extra/httpd-ssl.conf
+ps: 我的Apache在编译的时候没有mod_ssl模块，所以多了一步安装ssl模块，在不重新编译Apache的前提下安装ssl：
+
+# 进入Apache的源码目录
+$ cd /soft/httpd-2.4.27/modules/ssl/
+
+# 执行以下命令：
+$ /usr/local/apache2/bin/apxs -i -c -a -D HAVE_OPENSSL=1 -I /usr/include/openssl -lcrypto -lssl -ldl *.c
+2. 打开Apache安装目录下的conf/extra/httpd-ssl.conf文件（或conf.d/ssl.conf），在配置文件中找到以下语句并配置:
+    Listen 443
+    SSLHonorCipherOrder onDocumentRoot "网站的根目录"
+    ServerName www.lizelong.com:443    #域名
+    ServerAlias lizelong.com:443       #别名
+    ErrorLog "/usr/local/apache2/logs/错误日志"
+    TransferLog "/usr/local/apache2/logs/访问日志"
+
+    SSLEngine on
+
+    #下面的路径别改错了哦~
+    SSLCertificateFile "/usr/local/apache2/cert/cert.pem"
+    SSLCertificateKeyFile "/usr/local/apache2/cert/key.pem"
+    SSLCertificateChainFile "/usr/local/apache2/cert/fullchain.pem"
+3. 重启Apache
+$ apachectl restart
+这时候，你的网站应该就可以用https访问了，如果访问不了，看看是不是你的安全组没有开放443端口。
+
+我的服务器是阿里云的esc，并且只开放了有限的端口，所以需要去到控制台的安全组设置一下，具体操作不会的话请自行百度。
+
+但是同样的http也能访问，所以我们还差最后一步，让http的访问通过301重定向到https。
+
+4. Apache设置重定向
+修改网站根目录的 .htaccess
+
+  RewriteEngine On
+  #http 80端口的请求用301跳转到https
+  RewriteCond %{SERVER_PORT} 80
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+总结
+至此，网站升级https的工作已经全部完成了，但是升级https之后还有一些收尾工作需要进行，比如尽量将引用图片等静态资源的路径改为相对路径，所有的http协议头都改为https或者直接不写，支付接口的回调地址等需要绝对路径的地方，记得改一下，否则会给你带来一些“惊喜”。

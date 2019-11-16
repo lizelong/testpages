@@ -1,35 +1,82 @@
 ---
-biaoti: hahha
+heading: 永不停步
+subheading: 身体和灵魂，总有一个在路上，生命不息，奋斗不止~
+title: 有点意思~
 ---
 
-{% include header.html abc=page.biaoti %}
+{% include header.html %}
+  <!-- Page Header -->
+  <header class="masthead" style="background-image: url('/img/home-bg.jpg')">
+    <div class="overlay"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+          
+          <!-- 主页头部 -->
+          <div class="site-heading">
+            <h1>
+              {{page.heading | default: page.title}}
+            </h1>
+            <span class="subheading">{{page.subheading}}</span>
+            {% if page.author %}
+            <span class="meta">Posted by <a href="#">{{page.author}}</a>
+              on {{page.date}}</span>
+            {% endif %}
+          </div>
 
-  <!-- Main Content -->
+        </div>
+      </div>
+    </div>
+  </header>
+  
+  <!-- 文章列表 -->
   <div class="container">
     <div class="row">
       <div class="col-lg-8 col-md-10 mx-auto">
-
-        {% for post in site.posts %}
+        {% for post in paginator.posts %}
         <div class="post-preview">
-          <a href="post.html">
-            <h2 class="post-title">
-              文章标题
-            </h2>
-            <h3 class="post-subtitle">
-              文章摘要文章摘要文章摘要文章摘要文章摘要文章摘要文章摘要
-            </h3>
+          <a href="{{post.url}}">
+            <h2 style="font-size:28px" class="post-title">{{post.title}}</h2>
+            <h3 style="font-size:1.35rem" class="post-subtitle">{{post.zhaiyao | default:post.excerpt}}</h3>
           </a>
           <p class="post-meta">Posted by
-            <a href="#">作者</a>
-            on 日期时间</p>
+            <a href="#">{{post.author}}</a>
+            on {{post.date | date_to_long_string}}</p>
         </div>
         <hr>
         {% endfor %}
 
         <!-- Pager -->
-        <div class="clearfix">
+        <!-- <div class="clearfix">
           <a class="btn btn-primary float-right" href="#">查看更多 &rarr;</a>
+        </div> -->
+
+        {% if paginator.total_pages > 1 %}
+        <div class="pagination clearfix" style="width:100%;overflow:hidden">
+          {% if paginator.previous_page %}
+            <a href="{{ paginator.previous_page_path | prepend: site.baseurl | replace: '//', '/' }}" class="btn btn-primary">&laquo; 上一页</a>
+          {% else %}
+            <span class="btn disabled">&laquo; 上一页</span>
+          {% endif %}
+
+          {% for page in (1..paginator.total_pages) %}
+            {% if page == paginator.page %}
+              <em>{{ page }}</em>
+            {% elsif page == 1 %}
+              <a class="btn" href="/">{{ page }}</a>
+            {% else %}
+              <a class="btn" href="{{ site.paginate_path | prepend: site.baseurl | replace: '//', '/' | replace: ':num', page }}">{{ page }}</a>
+            {% endif %}
+          {% endfor %}
+
+          {% if paginator.next_page %}
+            <a href="{{ paginator.next_page_path | prepend: site.baseurl | replace: '//', '/' }}" class="btn btn-primary">下一页 &raquo;</a>
+          {% else %}
+            <span class="btn disabled">下一页 &raquo;</span>
+          {% endif %}
         </div>
+        {% endif %}
+
       </div>
     </div>
   </div>

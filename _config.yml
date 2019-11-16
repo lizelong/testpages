@@ -1,1 +1,10 @@
 #theme: jekyll-theme-hacker
+baseurl: /
+exclude: [doc, pages]  #让jekyll生成网站的时候忽略这些目录
+
+# 分页
+paginate: 6
+paginate_path: "blog/page:num"
+
+# 插件
+plugins: [jekyll-paginate]

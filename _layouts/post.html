@@ -1,0 +1,38 @@
+{% include header.html %}
+  <!-- Page Header -->
+  <header class="masthead" style="background-image: url('/img/{{page.pic | default:'home-bg.jpg'}}')">
+    <div class="overlay"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+          
+          <!-- 文章头部 -->
+          <div class="site-heading">
+            <h1 style="font-size:45px">
+              {{page.heading | default: page.title}}
+            </h1>
+            <span class="subheading"></span>
+            <br>
+            <span class="meta"> 由 <a href="#">{{page.author}}</a>
+              发布于 {{page.date | date_to_long_string}}</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 文章内容 -->
+  <article>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+          {{content}}
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <hr>
+
+{% include footer.html %}
