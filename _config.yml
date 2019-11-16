@@ -1,5 +1,5 @@
 #theme: jekyll-theme-hacker
-baseurl: /
+baseurl: /testpages
 exclude: [doc, pages]  #让jekyll生成网站的时候忽略这些目录
 
 # 分页
